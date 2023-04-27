@@ -1,54 +1,53 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
 using System.Reflection.PortableExecutable;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
-
-class Program
+namespace FinalTask
 {
-    static void Main(string[] args)
+    class Program
     {
-        const string SettingsFileName = @"D:/VS/Новая папка/Students.bin";
-
-        if (File.Exists(SettingsFileName))
+        static void Main(string[] args)
         {
-            string StringValue;
-            using (BinaryReader reader = new BinaryReader(File.Open(SettingsFileName, FileMode.Open)))
-            {
-                StringValue = reader.ReadString();
-            }
-            Console.WriteLine("Из файла считано: {0}", StringValue);
-        }
+            string file = @"D:/VS/Новая папка/Students.dat";
 
-        Directory.CreateDirectory("C:/Users/denma/Desktop/Students");
-        string Di = ("C:/Users/denma/Desktop/Students");
-        string[] txtList = Directory.GetFiles(SettingsFileName, @"C:/D:/VS/Новая папка/Students.bin");
-        foreach (string f in txtList)
-        {
-            string fName = f.Substring(SettingsFileName.Length + 1);
+            string path = "C:/Users/denma/Desktop/Students";
+            Directory.CreateDirectory(path);
 
-            try
+            BinaryFormatter bin = new BinaryFormatter();
+            using (var fs = new FileStream(file, FileMode.OpenOrCreate))
             {
-                File.Copy(Path.Combine(SettingsFileName, fName), Path.Combine(Di, fName));
+                Student[] students = (Student[])bin.Deserialize(fs);
+
+                for(int i = 0; i < students.Length; i++)
+                {
+                    string groupFilePath = path + "/" + students[i].Group + ".txt";
+
+                    using (FileStream fileStream = new FileStream(groupFilePath, FileMode.Append))
+                    {
+                        using (StreamWriter sw = new StreamWriter(fileStream))
+                        {
+                            sw.WriteLine($"{students[i].Name}, {students[i].DateOfBirth}");
+                        }
+                    }
+                }
             }
 
-            catch (IOException copyError)
-            {
-                Console.WriteLine(copyError.Message);
-            }
         }
     }
-}
-[Serializable]
-class Contact
-{
-    public string Name { get; set; }
-    public string Group { get; set; }
-    public int DateOfBirth { get; set; }
-
-    public Contact(string name, string group, int dateofbirth)
+        [Serializable]
+    class Student
     {
-        Name = name;
-        Group = group;
-        DateOfBirth = dateofbirth;
+        public string Name { get; set; }
+        public string Group { get; set; }
+        public DateTime DateOfBirth { get; set; }
+
+        public Student(string name, string group, DateTime dateofbirth)
+        {
+            Name = name;
+            Group = group;
+            DateOfBirth = dateofbirth;
+        }
     }
 }
